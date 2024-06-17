@@ -1,4 +1,4 @@
-import { Document, ExternalHyperlink, Packer, Paragraph, TextRun } from "docx";
+import { Document, ExternalHyperlink, Packer, Paragraph, TextRun, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
 
 const ExportableTextArea = (function ($) {
@@ -136,7 +136,7 @@ ExportableTextArea.Exporter = {
 
   createDocx: function (slides, elements) {
     const exportableTextAreas = [];
-
+    var TextAlign = AlignmentType.LEFT
     // Go through all slides and locate instances of H5P.ExportableTextArea
     for (var i = 0; i < elements.length; i++) {
 
@@ -149,6 +149,10 @@ ExportableTextArea.Exporter = {
         var element = elements[i][j];
 
         if (element.libraryInfo && element.libraryInfo.machineName === 'H5P.ExportableTextArea') {
+          let extraData = element.contentData?.parent?.extraData;
+          const contentLanguage = extraData.metadata && extraData.metadata.defaultLanguage
+            ? extraData.metadata.defaultLanguage : 'en';
+          if( contentLanguage == 'ar' ) TextAlign = AlignmentType.START
           var params = slides[i].elements[j];
           var input = (element.$input !== undefined ? element.$input.val() : '');
 
@@ -172,7 +176,9 @@ ExportableTextArea.Exporter = {
           new TextRun({ text: eta.header, break: 2 }),
           new TextRun({ text: eta.text, break: 1 }),
           new TextRun({ text: eta.comments, break: 1 }),
-        ]
+        ],
+        alignment: TextAlign,
+        bidirectional: TextAlign == 'start' ? true : false,
       });
     });
 
